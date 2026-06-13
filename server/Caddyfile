@@ -6,8 +6,13 @@ npm.fluttrium.store {
     reverse_proxy localhost:4873
 }
 
-# Vendure API + Dashboard (pool-инстанс)
+# Vendure API (pool-инстанс)
 api.fluttrium.store {
+    reverse_proxy localhost:3000
+}
+
+# Админка (тот же Vendure-сервер; Dashboard на /dashboard, admin-api — там же → без CORS)
+admin.fluttrium.store {
     reverse_proxy localhost:3000
 }
 
