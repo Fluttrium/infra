@@ -1,0 +1,19 @@
+# Приватный npm-реестр (Verdaccio) для РФ-ВПС.
+# - хранит твои пакеты (форк Vendure, общие плагины) под скоупом @fluttrium
+# - кэширует/проксирует публичный npm → сборки не зависят от доступности npmjs.com
+#
+# Запуск на ВПС:  docker compose up -d   (порт 4873)
+# В прод — закрой HTTPS (nginx/caddy) на npm.твой-домен.ру и не публикуй 4873 наружу.
+
+services:
+  registry:
+    image: verdaccio/verdaccio:6
+    restart: unless-stopped
+    ports:
+      - "4873:4873"
+    volumes:
+      - ./config.yaml:/verdaccio/conf/config.yaml:ro
+      - registry-storage:/verdaccio/storage
+
+volumes:
+  registry-storage:

@@ -1,0 +1,54 @@
+# Verdaccio — конфиг приватного реестра.
+storage: /verdaccio/storage
+
+auth:
+  htpasswd:
+    file: /verdaccio/storage/htpasswd
+    # макс. число регистраций. После создания нужных пользователей поставь 0 —
+    # закроет самостоятельную регистрацию (останется только логин существующих).
+    max_users: 1000
+
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+    cache: true
+    timeout: 30s
+    max_fails: 2
+    fail_timeout: 2m
+  # Запасной upstream на случай, если npmjs.org из РФ недоступен/тупит.
+  npmmirror:
+    url: https://registry.npmmirror.com/
+    cache: true
+    timeout: 30s
+
+packages:
+  # Твои приватные пакеты (форк-обёртки, общие плагины). Наружу НЕ проксируем.
+  '@fluttrium/*':
+    access: $authenticated
+    publish: $authenticated
+    unpublish: $authenticated
+
+  # Vendure. Вариант A (зеркало): proxy — Verdaccio кэширует пакеты у тебя, ты независим
+  # от npmjs.com. Вариант B (форк): убери proxy и публикуй сюда свои сборки @vendure/*.
+  '@vendure/*':
+    access: $authenticated
+    publish: $authenticated
+    proxy: npmjs npmmirror
+
+  # Всё остальное — кэшируем (сначала npmjs, при отказе — зеркало). Это и есть
+  # «независимость от npmjs.com»: один раз скачалось → лежит у тебя на ВПС.
+  '**':
+    access: $all
+    publish: $authenticated
+    proxy: npmjs npmmirror
+
+server:
+  keepAliveTimeout: 60
+
+web:
+  title: fluttrium registry
+
+log:
+  type: stdout
+  format: pretty
+  level: info

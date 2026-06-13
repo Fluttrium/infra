@@ -1,0 +1,58 @@
+#cloud-config
+# Первоначальная настройка VPS под fluttrium (pool-инстанс Vendure).
+# Вставь это содержимое в поле "user-data" / "cloud-init" / "скрипт при загрузке"
+# при создании сервера у провайдера (Timeweb / Selectel / Yandex).
+#
+# ⚠️ ПЕРЕД ЗАГРУЗКОЙ: замени строку ssh_authorized_keys ниже на содержимое своего
+#    публичного ключа:  cat ~/.ssh/fluttrium_vps.pub
+#    Если вставишь неверный ключ — запрёшь себя (вход останется только через
+#    веб-консоль/VNC провайдера). Сверь дважды.
+
+users:
+  - name: deploy
+    groups: [sudo]
+    shell: /bin/bash
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...ВСТАВЬ_СВОЙ_ПУБЛИЧНЫЙ_КЛЮЧ... roman@fluttrium
+
+package_update: true
+package_upgrade: true
+packages:
+  - ca-certificates
+  - curl
+  - ufw
+  - fail2ban
+  - unattended-upgrades
+  # Docker из репозиториев дистрибутива — надёжно из РФ (без CDN docker.com).
+  # Требует Ubuntu 24.04 (там есть docker-compose-v2).
+  - docker.io
+  - docker-compose-v2
+
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+    permissions: "0644"
+    content: |
+      PermitRootLogin no
+      PasswordAuthentication no
+      PubkeyAuthentication yes
+      ClientAliveInterval 300
+      ClientAliveCountMax 2
+
+runcmd:
+  # swap 2 ГБ — страховка по памяти (особенно если сборка образа идёт на боксе)
+  - bash -c "test -f /swapfile || (fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile && echo '/swapfile none swap sw 0 0' >> /etc/fstab)"
+  # Docker уже поставлен из packages (docker.io). Добавляем deploy в группу и включаем.
+  - usermod -aG docker deploy
+  - systemctl enable --now docker
+  # автоматические security-обновления
+  - bash -c "echo 'unattended-upgrades unattended-upgrades/enable_auto_updates boolean true' | debconf-set-selections && dpkg-reconfigure -f noninteractive unattended-upgrades"
+  # фаервол: наружу только SSH/HTTP/HTTPS (3000/5432/4873 — НЕ публикуем)
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - bash -c "ufw --force enable"
+  # применить hardening sshd (ключ deploy уже на месте — root/пароль отключаются безопасно)
+  - bash -c "systemctl restart ssh || systemctl restart sshd"
+
+final_message: "fluttrium server ready. Вход: ssh deploy@<IP>"

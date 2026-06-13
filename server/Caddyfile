@@ -1,0 +1,17 @@
+# Reverse-proxy с авто-HTTPS (Let's Encrypt). Ставится на сервер перед сервисами.
+# Caddy сам получит и продлит сертификаты — нужны лишь DNS-записи на сервер и порты 80/443.
+
+# Приватный реестр пакетов
+npm.fluttrium.store {
+    reverse_proxy localhost:4873
+}
+
+# Vendure API + Dashboard (pool-инстанс)
+api.fluttrium.store {
+    reverse_proxy localhost:3000
+}
+
+# Витрины демо-магазинов (если решишь хостить у себя; иначе — на стороне клиента)
+# fabric.fluttrium.store {
+#     reverse_proxy localhost:3001
+# }
