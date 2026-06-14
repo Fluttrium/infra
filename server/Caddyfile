@@ -20,3 +20,8 @@ admin.fluttrium.store {
 # fabric.fluttrium.store {
 #     reverse_proxy localhost:3001
 # }
+
+# Демо-витрина магазина «Kava»
+demo.fluttrium.store {
+    reverse_proxy localhost:3001
+}
