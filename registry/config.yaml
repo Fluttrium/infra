@@ -28,12 +28,18 @@ packages:
     publish: $authenticated
     unpublish: $authenticated
 
-  # Vendure. Вариант A (зеркало): proxy — Verdaccio кэширует пакеты у тебя, ты независим
-  # от npmjs.com. Вариант B (форк): убери proxy и публикуй сюда свои сборки @vendure/*.
+  # Наша копия Vendure: ОТРЕЗАНА от upstream (нет proxy) — hosted-only.
+  # Артефакты (3.6.4) опубликованы из vendor-mirror/ (байт-в-байт upstream, без пересборки).
+  # Апгрейд = сами публикуем новую версию сюда. npmjs для @vendure/* больше не нужен.
   '@vendure/*':
     access: $authenticated
     publish: $authenticated
-    proxy: npmjs npmmirror
+
+  # Дизайн-система Dashboard (@vendure-io/ui, @vendure-io/design-tokens) — тоже наша копия,
+  # hosted без proxy. ВАЖНО: блок выше catch-all '**', иначе уйдёт в proxy.
+  '@vendure-io/*':
+    access: $authenticated
+    publish: $authenticated
 
   # Всё остальное — кэшируем (сначала npmjs, при отказе — зеркало). Это и есть
   # «независимость от npmjs.com»: один раз скачалось → лежит у тебя на ВПС.
