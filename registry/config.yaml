@@ -4,9 +4,12 @@ storage: /verdaccio/storage
 auth:
   htpasswd:
     file: /verdaccio/storage/htpasswd
-    # макс. число регистраций. После создания нужных пользователей поставь 0 —
-    # закроет самостоятельную регистрацию (останется только логин существующих).
-    max_users: 1000
+    # Саморегистрация ЗАКРЫТА. Раньше стояло 1000, и любой человек из интернета
+    # мог зарегистрироваться, а затем публиковать и удалять пакеты платформы —
+    # реестр доступен снаружи через npm.fluttrium.store.
+    # Новых пользователей заводит администратор: временно поставить 1,
+    # выполнить npm adduser, вернуть 0.
+    max_users: 0
 
 uplinks:
   npmjs:
@@ -21,31 +24,36 @@ uplinks:
     cache: true
     timeout: 30s
 
+# Учётные записи:
+#   fluttrium — боевая, единственная с правом публикации;
+#   ci        — только чтение, выдана сборочным конвейерам GitHub Actions.
+# Права заданы поимённо: раньше стояло $authenticated, то есть публиковать мог
+# ЛЮБОЙ вошедший, включая read-only учётки.
 packages:
-  # Твои приватные пакеты (форк-обёртки, общие плагины). Наружу НЕ проксируем.
+  # Наши пакеты: движок, платформа, дизайн-система дашборда. Наружу НЕ проксируем.
   '@fluttrium/*':
     access: $authenticated
-    publish: $authenticated
-    unpublish: $authenticated
+    publish: fluttrium
+    unpublish: fluttrium
 
   # Наша копия Vendure: ОТРЕЗАНА от upstream (нет proxy) — hosted-only.
   # Артефакты (3.6.4) опубликованы из vendor-mirror/ (байт-в-байт upstream, без пересборки).
   # Апгрейд = сами публикуем новую версию сюда. npmjs для @vendure/* больше не нужен.
   '@vendure/*':
     access: $authenticated
-    publish: $authenticated
+    publish: fluttrium
 
-  # Дизайн-система Dashboard (@vendure-io/ui, @vendure-io/design-tokens) — тоже наша копия,
-  # hosted без proxy. ВАЖНО: блок выше catch-all '**', иначе уйдёт в proxy.
+  # Дизайн-система Dashboard — тоже наша копия, hosted без proxy.
+  # ВАЖНО: блок выше catch-all '**', иначе уйдёт в proxy.
   '@vendure-io/*':
     access: $authenticated
-    publish: $authenticated
+    publish: fluttrium
 
   # Всё остальное — кэшируем (сначала npmjs, при отказе — зеркало). Это и есть
   # «независимость от npmjs.com»: один раз скачалось → лежит у тебя на ВПС.
   '**':
     access: $all
-    publish: $authenticated
+    publish: fluttrium
     proxy: npmjs npmmirror
 
 server:
