@@ -25,3 +25,9 @@ admin.fluttrium.store {
 demo.fluttrium.store {
     reverse_proxy localhost:3001
 }
+
+# Маркетинговый сайт маркета (репозиторий market-website, /home/deploy/website).
+# Контейнер слушает только 127.0.0.1:3002 — наружу ходит Caddy, он же держит TLS.
+promo.fluttrium.store {
+    reverse_proxy localhost:3002
+}
