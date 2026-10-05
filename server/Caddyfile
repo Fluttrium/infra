@@ -31,3 +31,21 @@ demo.fluttrium.store {
 promo.fluttrium.store {
     reverse_proxy localhost:3002
 }
+
+# Бухгалтерия (форк Midday). Один домен, три сервиса за путями:
+#   /api-v1/*   → API приложения (tRPC)
+#   /supabase/* → Supabase (вход, файлы)
+#   всё прочее  → интерфейс
+buh.fluttrium.com {
+    handle_path /api-v1/* {
+        reverse_proxy localhost:3013
+    }
+
+    handle_path /supabase/* {
+        reverse_proxy localhost:8000
+    }
+
+    handle {
+        reverse_proxy localhost:3010
+    }
+}
