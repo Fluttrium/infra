@@ -32,6 +32,13 @@ promo.fluttrium.store {
     reverse_proxy localhost:3002
 }
 
+# Документация продавцов и разработчиков (репозиторий Fluttrium/docs, ~/docs).
+# Статика в nginx на 127.0.0.1:3004, Caddy держит домен и TLS.
+docs.fluttrium.store {
+    encode zstd gzip
+    reverse_proxy localhost:3004
+}
+
 # Бухгалтерия (форк Midday). Один домен, три сервиса за путями:
 #   /api-v1/*   → API приложения (tRPC)
 #   /supabase/* → Supabase (вход, файлы)
