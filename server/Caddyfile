@@ -32,6 +32,13 @@ promo.fluttrium.store {
     reverse_proxy localhost:3002
 }
 
+# Корневой домен и www: своего сайта на них нет, ведут на маркетинговый сайт.
+# Редирект временный (302), чтобы корень можно было занять без оглядки на кэш
+# браузеров; для склейки в поиске заменить на `permanent`.
+fluttrium.store, www.fluttrium.store {
+    redir https://promo.fluttrium.store{uri}
+}
+
 # Документация продавцов и разработчиков (репозиторий Fluttrium/docs, ~/docs).
 # Статика в nginx на 127.0.0.1:3004, Caddy держит домен и TLS.
 docs.fluttrium.store {
